@@ -1,0 +1,174 @@
+-- Create the ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- Store the default keybind
+local keybind = Enum.KeyCode.T -- Initial keybind (you can change this to any default key)
+
+-- Function to create a button with a background
+local function createButton(name, text, color)
+    -- Create the background frame
+    local frame = Instance.new("Frame")
+    frame.Name = name .. "Frame"
+    frame.Size = UDim2.new(0, 160, 0, 60)
+    frame.Position = UDim2.new(0, 20, 0.5, (#screenGui:GetChildren() - 1) * 70 - 80) -- Adjusted Y position
+    frame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+    frame.BackgroundTransparency = 0.5
+    frame.BorderSizePixel = 0
+    frame.Parent = screenGui
+    frame.AnchorPoint = Vector2.new(0, 0.5)
+
+    -- Make background round
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 15)
+    frameCorner.Parent = frame
+
+    -- Create the button on top of the frame
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Text = text
+    button.TextColor3 = color
+    button.Size = UDim2.new(1, -10, 1, -10)
+    button.Position = UDim2.new(0.5, 0, 0.5, 0)
+    button.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    button.BackgroundTransparency = 0.3
+    button.BorderSizePixel = 0
+    button.Font = Enum.Font.SourceSansBold
+    button.TextSize = 20 -- Fixed text size for consistency
+    button.TextWrapped = true
+    button.Parent = frame
+    button.AnchorPoint = Vector2.new(0.5, 0.5)
+
+    -- Make button round
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 12)
+    buttonCorner.Parent = button
+
+    return button
+end
+
+-- Create Buttons with backgrounds
+local magmaButton = createButton("MagmaButton", "🔥｜MAGMA", Color3.fromRGB(255, 165, 0)) -- Orange
+local plekButton = createButton("PlekButton", "🌿｜PLEK", Color3.fromRGB(0, 162, 255))    -- Blue
+local keybindButton = createButton("KeybindButton", "⚙️｜KEYBIND (" .. keybind.Name .. ")", Color3.fromRGB(255, 255, 255)) -- White
+
+-- Functionality to set a new keybind
+local isListeningForKeybind = false
+
+-- Function to update the keybind button text
+local function updateKeybindButtonText()
+    keybindButton.Text = "⚙️｜KEYBIND (" .. keybind.Name .. ")"
+end
+
+-- Function to teleport the player back to their original position
+local function teleportBack(character, originalPosition)
+    wait(2) -- Wait for 1 second before teleporting back
+    character:SetPrimaryPartCFrame(CFrame.new(originalPosition))
+end
+
+-- Teleportation function for PLEK
+local function teleportToPlek()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait() -- Wait for the character to load
+
+    -- Teleport the player to PLEK
+    character:SetPrimaryPartCFrame(CFrame.new(-3229, -404, 1355))
+
+    -- Handle folder management
+    -- Define the path to the 'Ocean' folder in Workspace.World
+    local oceanFolder = game.Workspace.World:FindFirstChild("Ocean")
+    
+    -- Check if the 'Ocean' folder exists, then delete it
+    if oceanFolder and oceanFolder:IsA("Folder") then
+        oceanFolder:Destroy()
+    end
+
+    -- Define the path to the 'Folder' in Workspace
+    local workspaceFolder = game.Workspace:FindFirstChild("Folder")
+
+    -- Check if the 'Folder' exists in Workspace, then delete it
+    if workspaceFolder and workspaceFolder:IsA("Folder") then
+        workspaceFolder:Destroy()
+    end
+
+    -- Define the path to the 'floor' folder
+    local floorFolder = game.Workspace.World.Regions.Terrain.River.RiverCave.PlekCave:FindFirstChild("floor")
+
+    -- Check if the 'floor' folder exists, then delete it
+    if floorFolder then
+        floorFolder:Destroy()  -- Delete the entire floor folder
+
+        -- Create a new Baseplate
+        local baseplate = Instance.new("Part")
+        baseplate.Size = Vector3.new(900, 5, 900)  -- Size of 900x900 and height of 5
+        baseplate.Position = Vector3.new(-3229, -595, 1356)  -- Spawn location
+        baseplate.Anchored = true  -- Make sure the baseplate stays in place
+        baseplate.Parent = game.Workspace  -- Parent it to the Workspace
+    end
+end
+
+-- Teleportation function for MAGMA
+local function teleportToMagma()
+    local player = game.Players.LocalPlayer
+    local character = player.Character or player.CharacterAdded:Wait() -- Wait for the character to load
+
+    -- Teleport the player to MAGMA
+    character:SetPrimaryPartCFrame(CFrame.new(-1700, -217, 375))
+end
+
+-- Detects when the "KEYBIND" button is clicked
+keybindButton.MouseButton1Click:Connect(function()
+    if not isListeningForKeybind then
+        isListeningForKeybind = true
+        keybindButton.Text = "⚙️｜Press any key..."
+        
+        -- Listen for a key press
+        local inputConnection
+        inputConnection = game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+            if not gameProcessedEvent and input.UserInputType == Enum.UserInputType.Keyboard then
+                keybind = input.KeyCode
+                isListeningForKeybind = false
+                updateKeybindButtonText()
+
+                -- Disconnect the input listener after capturing the keybind
+                inputConnection:Disconnect()
+            end
+        end)
+    end
+end)
+
+-- Example function to demonstrate the keybind in action
+game:GetService("UserInputService").InputBegan:Connect(function(input, gameProcessedEvent)
+    if not gameProcessedEvent and input.KeyCode == keybind then
+        local player = game.Players.LocalPlayer
+        local character = player.Character or player.CharacterAdded:Wait() -- Wait for the character to load
+
+        -- Store the original position of the player
+        local originalPosition = character.PrimaryPart.Position
+
+        -- Teleport the player to the new location
+        character:SetPrimaryPartCFrame(CFrame.new(500, 15, 29)) -- Teleport to the keybind location
+
+        -- Teleport the entire LooseTree model to (486, 2, 29)
+        local looseTreeModel = game.Workspace.World.LooseItems:FindFirstChild("LooseTree") -- Reference the LooseTree model
+        if looseTreeModel then
+            looseTreeModel:SetPrimaryPartCFrame(CFrame.new(486, 2, 29)) -- Teleport the entire model
+        else
+            warn("Model 'LooseTree' not found in the workspace.")
+        end
+
+        -- Teleport back after 1 second
+        teleportBack(character, originalPosition)
+    end
+end)
+
+-- Add button functionality for MAGMA and PLEK buttons
+magmaButton.MouseButton1Click:Connect(function()
+    print("Magma button clicked!")
+    teleportToMagma() -- Call the teleport function for MAGMA
+end)
+
+plekButton.MouseButton1Click:Connect(function()
+    print("Plek button clicked!")
+    teleportToPlek() -- Call the teleport function for PLEK
+end)
